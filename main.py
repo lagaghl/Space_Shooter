@@ -1,4 +1,5 @@
 import pygame
+import time
 
 pygame.init()
 
@@ -20,15 +21,29 @@ class Alien(pygame.sprite.Sprite):
         pass
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self,img):
+    def __init__(self):
         super().__init__()
-        image = pygame.image.load(img)
+        image = pygame.image.load('spaceship.png')
         scale = 0.4
         self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
         self.rect = self.image.get_rect()
         self.rect.x = screen.get_width()/2
         self.rect.y = screen.get_height()-self.rect.height-10
         self.score = 0
+        self.shoot_delay = 0.3
+        self.last_shot_time = time.time()
+
+    def increase_score(self):
+        self.score +=1
+
+    def shoot(self):
+        current_time = time.time()
+        if current_time - self.last_shot_time >= self.shoot_delay:
+            bullet = Bullet(self.rect.centerx, self.rect.top)
+            all_sprites.add(bullet)
+            bullets.add(bullet)
+            self.last_shot_time = current_time
+        #add sound
 
     def update(self,keys):
         if keys[pygame.K_RIGHT]:
@@ -41,20 +56,24 @@ class Player(pygame.sprite.Sprite):
         elif player.rect.x > screen.get_width() - self.rect.width:
             player.rect.x = screen.get_width() - self.rect.width
 
-    def increase_score(self):
-        self.score +=1
-    
-    def shoot(self):
-        #shott a bullet, make noise, and put a coldown
-        pass
+        if keys[pygame.K_SPACE]:
+            self.shoot()
+        
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self,player_x,player_y):
         super().__init__()
+        self.image = pygame.Surface((5, 30))
+        self.image.fill((255, 50, 50))
+        self.rect = self.image.get_rect()
+        self.rect.centerx = player_x
+        self.rect.bottom = player_y
     def update(self):
-        pass
+        self.rect.y -= 5
+        if self.rect.y<-30:
+            self.kill()
 #make the player
-player = Player('spaceship.png')
+player = Player()
 
 #make sprites group
 all_sprites = pygame.sprite.Group()
@@ -76,6 +95,7 @@ while running:
     # Player movement
     keys = pygame.key.get_pressed()
     players.update(keys)
+    bullets.update()
 
     #Draw all the sprites
     all_sprites.draw(screen)
