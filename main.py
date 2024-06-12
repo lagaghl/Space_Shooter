@@ -4,6 +4,8 @@ from random import randint, sample
 from numpy import linspace
 
 pygame.init()
+pygame.mixer.init()
+background_sound = pygame.mixer.Sound(r"assets\background_music.mp3")
 
 screen = pygame.display.set_mode((800,700))
 pygame.display.set_caption('Space Shooter')
@@ -65,6 +67,8 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.centerx = player_x
         self.rect.bottom = player_y
+        self.sound = pygame.mixer.Sound('assets\shoot.mp3')
+        pygame.mixer.Sound.play(self.sound)
     def update(self):
         self.rect.y -= 7
         if self.rect.y<-30:
@@ -86,10 +90,11 @@ def show_text(text, size, color, center):
     screen.blit(text_surface, text_rect)
 
 def main_menu():
+    pygame.mixer.Sound.play(background_sound,-1)
     while True:
-        screen.fill((0,0,0))
-        show_text("Space Shooter", 72, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 - 50))
-        show_text("Press ENTER to Start", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 20))
+        screen.fill((33,33,33))
+        show_text("Space Shooter", 72, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 - 50))
+        show_text("Press to Start", 36, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 25))
         
         pygame.display.flip()
 
@@ -98,16 +103,16 @@ def main_menu():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    return
+                return
 
 def game_over_menu(score, high_score):
+    pygame.mixer.stop()
     while True:
-        screen.fill((0,0,0))
-        show_text("Game Over", 72,(255,255,255) , (screen.get_width() / 2, screen.get_height() / 2 - 50))
-        show_text(f"Score: {score}", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 20))
-        show_text(f"High Score: {high_score}", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 60))
-        show_text("Press ENTER to Play Again", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 100))
+        screen.fill((33,33,33))
+        show_text("Game Over", 72,(250,250,250) , (screen.get_width() / 2, screen.get_height() / 2 - 50))
+        show_text(f"Score: {score}", 36, (250,250,250), (screen.get_width() / 2, screen.get_height() / 2 + 20))
+        show_text(f"High Score: {high_score}", 36, (250,250,250), (screen.get_width() / 2, screen.get_height() / 2 + 60))
+        show_text("Press to continue", 36, (250,250,250), (screen.get_width() / 2, screen.get_height() / 2 + 100))
 
         pygame.display.flip()
 
@@ -116,8 +121,7 @@ def game_over_menu(score, high_score):
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    return
+                return
 
 high_score = 0
 def game_loop():
@@ -144,18 +148,25 @@ def game_loop():
     while running:
         current_time = time.time()
         screen.fill((33,33,33))
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+
+        defense_line = pygame.Rect(0, player.rect.top, screen.get_width(), 1)
         collitions = pygame.sprite.groupcollide(aliens, bullets, False, True)
         for collition in collitions:
             collition.kill()
             player.increase_score()
-            if player.score%100 == 0:
-                aliens_delay -= 0.1
-                player.shoot_delay -= 0.1
+            if player.score % 100 == 0:
+                aliens_delay -= 0.2
+            if player.score % 400 == 0:
+                player.shoot_delay -= 0.05
 
-        defense_line = pygame.Rect(0, player.rect.top, screen.get_width(), 1)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                running = False
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
         for alien in aliens.sprites():
             if defense_line.colliderect(alien.rect):
