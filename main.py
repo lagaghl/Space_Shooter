@@ -94,7 +94,7 @@ def main_menu():
     while True:
         screen.fill((33,33,33))
         show_text("Space Shooter", 72, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 - 50))
-        show_text("Press to Start", 36, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 25))
+        show_text("Press Enter to Start", 36, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 25))
         
         pygame.display.flip()
 
@@ -103,16 +103,17 @@ def main_menu():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN:
-                return
+                if event.key == pygame.K_RETURN:
+                    return
 
 def game_over_menu(score, high_score):
     pygame.mixer.stop()
     while True:
         screen.fill((33,33,33))
-        show_text("Game Over", 72,(250,250,250) , (screen.get_width() / 2, screen.get_height() / 2 - 50))
-        show_text(f"Score: {score}", 36, (250,250,250), (screen.get_width() / 2, screen.get_height() / 2 + 20))
-        show_text(f"High Score: {high_score}", 36, (250,250,250), (screen.get_width() / 2, screen.get_height() / 2 + 60))
-        show_text("Press to continue", 36, (250,250,250), (screen.get_width() / 2, screen.get_height() / 2 + 100))
+        show_text("Game Over", 72,(200,200,200) , (screen.get_width() / 2, screen.get_height() / 2 - 50))
+        show_text(f"Score: {score}", 36, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 20))
+        show_text(f"High Score: {high_score}", 36, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 60))
+        show_text("Press Enter to continue", 50, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 120))
 
         pygame.display.flip()
 
@@ -121,11 +122,24 @@ def game_over_menu(score, high_score):
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN:
-                return
+                if event.key == pygame.K_RETURN:
+                    return
+
+def pause_menu():
+    surface = pygame.Surface((screen.get_width(), screen.get_height()),150)
+    pygame.draw.rect(surface,(33,33,33,150),[0,0,screen.get_width(), screen.get_height()])
+    screen.blit(surface, (0, 0))
+    show_text("Paused Game", 72, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 - 50))
+    show_text("Press ESCAPE to resume", 40, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 60))
+    show_text("Press Q to save and quit", 40, (200,200,200), (screen.get_width() / 2, screen.get_height() / 2 + 100))
+    pygame.display.flip()
+
 
 high_score = 0
+is_paused = False
 def game_loop():
     global high_score
+    global is_paused
     #make the player
     player = Player()
 
@@ -140,8 +154,6 @@ def game_loop():
     players.add(player)
     all_sprites.add(player)
 
-    font = pygame.font.Font(None, 36)
-
     running = True
     aliens_delay = 3.5
     last_aliens_time = time.time()
@@ -149,7 +161,25 @@ def game_loop():
         current_time = time.time()
         screen.fill((33,33,33))
 
-        defense_line = pygame.Rect(0, player.rect.top, screen.get_width(), 1)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                running = False
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    is_paused = not is_paused
+                    if is_paused:
+                        pygame.mixer.pause()                        
+                    else:
+                        pygame.mixer.unpause()
+
+                if event.key == pygame.K_q and is_paused:
+                    running = False
+                    is_paused = False
+                    break
+                    
+
         collitions = pygame.sprite.groupcollide(aliens, bullets, False, True)
         for collition in collitions:
             collition.kill()
@@ -159,35 +189,30 @@ def game_loop():
             if player.score % 400 == 0:
                 player.shoot_delay -= 0.05
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                running = False
-                return
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-
+        defense_line = pygame.Rect(0, player.rect.top, screen.get_width(), 1)
         for alien in aliens.sprites():
             if defense_line.colliderect(alien.rect):
                running = False
         # Player movement
-        keys = pygame.key.get_pressed()
-        players.update(keys)
-        bullets.update()
-        # Make aliens
-        if current_time-last_aliens_time>=aliens_delay:
-            aliens.update()
-            create_alien()
-            last_aliens_time = time.time()
-        #Draw all the sprites
-        all_sprites.draw(screen)
+        if not is_paused:
+            keys = pygame.key.get_pressed()
+            players.update(keys)
+            bullets.update()
+            # Make aliens
+            if current_time-last_aliens_time>=aliens_delay:
+                aliens.update()
+                create_alien()
+                last_aliens_time = time.time()
+            #Draw all the sprites
+            all_sprites.draw(screen)
 
-        score_text = font.render(f'Score: {player.score}', True, (255, 255, 255))
-        score_rect = score_text.get_rect()
-        score_rect.bottomright = (screen.get_width() - 10, screen.get_height() - 10)
-        screen.blit(score_text, score_rect)
-
+            font = pygame.font.Font(None, 36)
+            score_text = font.render(f'Score: {player.score}', True, (200, 200, 200))
+            score_rect = score_text.get_rect()
+            score_rect.bottomright = (screen.get_width() - 10, screen.get_height() - 10)
+            screen.blit(score_text, score_rect)
+        else:
+            pause_menu()
         # Info update
         pygame.display.flip()
         pygame.time.Clock().tick(60)
