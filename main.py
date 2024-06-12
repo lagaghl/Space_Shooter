@@ -7,12 +7,12 @@ pygame.init()
 
 screen = pygame.display.set_mode((800,700))
 pygame.display.set_caption('Space Shooter')
-pygame.display.set_icon(pygame.image.load('spaceship.png'))
+pygame.display.set_icon(pygame.image.load('assets\spaceship.png'))
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self,x):
         super().__init__()
-        self.image = pygame.image.load('alien.png')
+        self.image = pygame.image.load('assets\alien.png')
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = 0
@@ -23,7 +23,7 @@ class Alien(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load('spaceship.png')
+        self.image = pygame.image.load('assets\spaceship.png')
         self.rect = self.image.get_rect()
         self.rect.x = screen.get_width()/2
         self.rect.y = screen.get_height()-self.rect.height-10
