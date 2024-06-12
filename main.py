@@ -12,7 +12,7 @@ pygame.display.set_icon(pygame.image.load('assets\spaceship.png'))
 class Alien(pygame.sprite.Sprite):
     def __init__(self,x):
         super().__init__()
-        self.image = pygame.image.load('assets\alien.png')
+        self.image = pygame.image.load('assets\Alien.png')
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = 0
