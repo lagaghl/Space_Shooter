@@ -44,14 +44,14 @@ class Player(pygame.sprite.Sprite):
 
     def update(self,keys):
         if keys[pygame.K_RIGHT]:
-            player.rect.x += 8
+            self.rect.x += 8
         if keys[pygame.K_LEFT]:
-            player.rect.x -= 8
+            self.rect.x -= 8
 
-        if player.rect.x < -self.rect.width/2 + 10:
-            player.rect.x = -self.rect.width/2 + 10
-        elif player.rect.x > screen.get_width() - self.rect.width/2 - 10:
-            player.rect.x = screen.get_width() - self.rect.width/2 - 10
+        if self.rect.x < -self.rect.width/2 + 10:
+            self.rect.x = -self.rect.width/2 + 10
+        elif self.rect.x > screen.get_width() - self.rect.width/2 - 10:
+            self.rect.x = screen.get_width() - self.rect.width/2 - 10
 
         if keys[pygame.K_SPACE]:
             self.shoot()
@@ -77,58 +77,108 @@ def create_alien():
         alien = Alien(space[i])
         all_sprites.add(alien)
         aliens.add(alien)
-#make the player
-player = Player()
 
-#make sprites group
-all_sprites = pygame.sprite.Group()
-players = pygame.sprite.Group()
-bullets = pygame.sprite.Group()
-aliens = pygame.sprite.Group()
+def show_text(text, size, color, center):
+    font = pygame.font.Font(None, size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect(center=center)
+    screen.blit(text_surface, text_rect)
 
-#add objects to the sprites group
-players.add(player)
-all_sprites.add(player)
-
-font = pygame.font.Font(None, 36)
-
-running = True
-aliens_delay = 3
-last_aliens_time = time.time()
-while running:
-    current_time = time.time()
-    screen.fill((33,33,33))
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    for alien in aliens:
-        if alien.rect.y >= player.rect.y:
-            running = False  # Terminar el juego
-    collitions = pygame.sprite.groupcollide(aliens, bullets, True, True)
-    for collition in collitions:
-        player.increase_score()
-    # Player movement
-    keys = pygame.key.get_pressed()
-    players.update(keys)
-    bullets.update()
-    # Make aliens
-    if current_time-last_aliens_time>=aliens_delay:
-        aliens.update()
-        create_alien()
-        last_aliens_time = time.time()
-    #Draw all the sprites
-    all_sprites.draw(screen)
-
-    score_text = font.render(f'Score: {player.score}', True, (255, 255, 255))
-    score_rect = score_text.get_rect()
-    score_rect.bottomright = (screen.get_width() - 10, screen.get_height() - 10)
-    screen.blit(score_text, score_rect)
-
-    # Info update
-    pygame.display.flip()
-    pygame.time.Clock().tick(60)
-
+def main_menu():
+    while True:
+        screen.fill((0,0,0))
+        show_text("Space Shooter", 72, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 - 50))
+        show_text("Press ENTER to Start", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 20))
         
-pygame.quit()
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    return
+
+def game_over_menu(score, high_score):
+    while True:
+        screen.fill((0,0,0))
+        show_text("Game Over", 72,(255,255,255) , (screen.get_width() / 2, screen.get_height() / 2 - 50))
+        show_text(f"Score: {score}", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 20))
+        show_text(f"High Score: {high_score}", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 60))
+        show_text("Press ENTER to Play Again", 36, (255,255,255), (screen.get_width() / 2, screen.get_height() / 2 + 100))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    return
+
+hight_score = 0
+def game_loop(high_score):
+    #make the player
+    player = Player()
+
+    #make sprites group
+    global all_sprites, players, bullets, aliens
+    all_sprites = pygame.sprite.Group()
+    players = pygame.sprite.Group()
+    bullets = pygame.sprite.Group()
+    aliens = pygame.sprite.Group()
+
+    #add objects to the sprites group
+    players.add(player)
+    all_sprites.add(player)
+
+    font = pygame.font.Font(None, 36)
+
+    running = True
+    aliens_delay = 0.5
+    last_aliens_time = time.time()
+    while running:
+        current_time = time.time()
+        screen.fill((33,33,33))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        collitions = pygame.sprite.groupcollide(aliens, bullets, True, True)
+        for collition in collitions:
+            player.increase_score()
+
+        for alien in aliens:
+            if alien.rect.bottom >= player.rect.top:
+                running = False  # Terminar el juego
+        # Player movement
+        keys = pygame.key.get_pressed()
+        players.update(keys)
+        bullets.update()
+        # Make aliens
+        if current_time-last_aliens_time>=aliens_delay:
+            aliens.update()
+            create_alien()
+            last_aliens_time = time.time()
+        #Draw all the sprites
+        all_sprites.draw(screen)
+
+        score_text = font.render(f'Score: {player.score}', True, (255, 255, 255))
+        score_rect = score_text.get_rect()
+        score_rect.bottomright = (screen.get_width() - 10, screen.get_height() - 10)
+        screen.blit(score_text, score_rect)
+
+        # Info update
+        pygame.display.flip()
+        pygame.time.Clock().tick(60)
+    if player.score > high_score:
+        high_score = player.score
+    game_over_menu(player.score, high_score)
+
+main_menu()
+while True:
+    game_loop(hight_score)
+    main_menu()
 
 
