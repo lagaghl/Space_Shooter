@@ -118,8 +118,9 @@ def game_over_menu(score, high_score):
                 if event.key == pygame.K_RETURN:
                     return
 
-hight_score = 0
-def game_loop(high_score):
+high_score = 0
+def game_loop():
+    global high_score
     #make the player
     player = Player()
 
@@ -137,7 +138,7 @@ def game_loop(high_score):
     font = pygame.font.Font(None, 36)
 
     running = True
-    aliens_delay = 0.5
+    aliens_delay = 3.5
     last_aliens_time = time.time()
     while running:
         current_time = time.time()
@@ -145,13 +146,19 @@ def game_loop(high_score):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        collitions = pygame.sprite.groupcollide(aliens, bullets, True, True)
+        collitions = pygame.sprite.groupcollide(aliens, bullets, False, True)
         for collition in collitions:
+            collition.kill()
             player.increase_score()
+            if player.score%100 == 0:
+                aliens_delay -= 0.1
+                player.shoot_delay -= 0.1
 
-        for alien in aliens:
-            if alien.rect.bottom >= player.rect.top:
-                running = False  # Terminar el juego
+        defense_line = pygame.Rect(0, player.rect.top, screen.get_width(), 1)
+
+        for alien in aliens.sprites():
+            if defense_line.colliderect(alien.rect):
+               running = False
         # Player movement
         keys = pygame.key.get_pressed()
         players.update(keys)
@@ -178,7 +185,7 @@ def game_loop(high_score):
 
 main_menu()
 while True:
-    game_loop(hight_score)
+    game_loop()
     main_menu()
 
 
