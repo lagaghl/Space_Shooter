@@ -6,7 +6,7 @@ screen = pygame.display.set_mode((800,700))
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self,img,x,y):
-        super().__init__(self)
+        super().__init__()
         self.img = pygame.image.load(img)
         self.x = x
         self.y = y
@@ -20,7 +20,7 @@ class Alien(pygame.sprite.Sprite):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,img):
-        super().__init__(self)
+        super().__init__()
         image = pygame.image.load(img)
         ext = image.get_rect()[2:4]
         scale = 0.4
@@ -28,9 +28,18 @@ class Player(pygame.sprite.Sprite):
         self.x = screen.get_width()/2
         self.y = screen.get_height()-self.img.get_height()-10
         self.score = 0
-    def move(self,x):
-        self.x = x
-        screen.blit(self.img,(x,self.y))
+    def update(self,keys):
+        if keys[pygame.K_RIGHT]:
+            player.x += 8
+        if keys[pygame.K_LEFT]:
+            player.x -= 8
+
+        if player.x < 0:
+            player.x = 0
+        elif player.x > screen.get_width() - player.img.get_width():
+            player.x = screen.get_width() - player.img.get_width()
+        self.x = player.x
+        screen.blit(self.img,(player.x,self.y))
     def increase_score(self):
         self.score +=1
     def shoot(self):
@@ -38,7 +47,7 @@ class Player(pygame.sprite.Sprite):
         pass
 class Bullet(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
     def update(self):
         pass
 
@@ -47,6 +56,9 @@ all_sprites = pygame.sprite.Group()
 players = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 aliens = pygame.sprite.Group()
+players.add(player)
+
+
 running = True
 while running:
     screen.fill((33,33,33))
@@ -56,18 +68,7 @@ while running:
 
     # Player movement
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT]:
-        player.x += 10
-    if keys[pygame.K_LEFT]:
-        player.x -= 10
-
-    if player.x < 0:
-        player.x = 0
-    elif player.x > screen.get_width() - player.img.get_width():
-        player.x = screen.get_width() - player.img.get_width()
-    
-    player.move(player.x)
-
+    players.update(keys)
     # Info update
     pygame.display.flip()
     pygame.time.Clock().tick(60)
