@@ -4,8 +4,9 @@ pygame.init()
 
 screen = pygame.display.set_mode((800,700))
 
-class Alien:
+class Alien(pygame.sprite.Sprite):
     def __init__(self,img,x,y):
+        super().__init__(self)
         self.img = pygame.image.load(img)
         self.x = x
         self.y = y
@@ -17,8 +18,9 @@ class Alien:
         #make noises and disappear 
         pass
 
-class Player:
+class Player(pygame.sprite.Sprite):
     def __init__(self,img):
+        super().__init__(self)
         image = pygame.image.load(img)
         ext = image.get_rect()[2:4]
         scale = 0.4
@@ -34,8 +36,17 @@ class Player:
     def shoot(self):
         #shott a bullet, make noise, and put a coldown
         pass
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(self)
+    def update(self):
+        pass
 
 player = Player('spaceship.png')
+all_sprites = pygame.sprite.Group()
+players = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+aliens = pygame.sprite.Group()
 running = True
 while running:
     screen.fill((33,33,33))
@@ -43,6 +54,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # Player movement
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT]:
         player.x += 10
@@ -56,6 +68,7 @@ while running:
     
     player.move(player.x)
 
+    # Info update
     pygame.display.flip()
     pygame.time.Clock().tick(60)
 
