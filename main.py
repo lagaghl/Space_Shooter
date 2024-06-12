@@ -7,6 +7,7 @@ pygame.init()
 
 screen = pygame.display.set_mode((800,700))
 pygame.display.set_caption('Space Shooter')
+pygame.display.set_icon(pygame.image.load('spaceship.png'))
 
 class Alien(pygame.sprite.Sprite):
     def __init__(self,x):
