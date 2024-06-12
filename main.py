@@ -186,8 +186,12 @@ def game_loop():
             player.increase_score()
             if player.score % 100 == 0:
                 aliens_delay -= 0.2
+                if aliens_delay<0:
+                    aliens_delay = 0
             if player.score % 400 == 0:
                 player.shoot_delay -= 0.05
+                if player.shoot_delay<0:
+                    player.shoot_delay = 0
 
         defense_line = pygame.Rect(0, player.rect.top, screen.get_width(), 1)
         for alien in aliens.sprites():
