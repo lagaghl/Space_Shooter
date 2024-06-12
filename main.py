@@ -189,4 +189,4 @@ while True:
     game_loop()
     main_menu()
 
-
+pygame.quit()
